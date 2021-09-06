@@ -45,7 +45,7 @@ int main(){
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // 새로 만든 셰이더 클래스를 이용해 셰이더를 텍스트 파일에서 불러오고 초기화한다.
-    Shader ourShader("../../src/1.getting_started/3.3.shaders_class/shader.vs", "../../src/1.getting_started/3.3.shaders_class/shader.fs");
+    Shader ourShader("../../src/1.getting_started/3.4.shaders_exercise1/upside_down.vs", "../../src/1.getting_started/3.3.shaders_class/shader.fs");
     // ==================== 초기화 부분 끝 ===========================
 
     // 삼각형을 위한 버텍스 3개를 정의한다. 좌표값은 X, Y, Z로 정의된다.
