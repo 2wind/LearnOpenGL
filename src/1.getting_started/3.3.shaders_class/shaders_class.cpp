@@ -15,6 +15,8 @@ void processInput(GLFWwindow * window);
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
+const float HORIZ_OFFSET = 0.1f;
+
 // 버텍스 셰이더와 프래그먼트 셰이더를 CPP 내부에 포함시킬 수 있는 방법.
 // 더 좋은 방법이 있을까...
 // 있다. 
@@ -45,7 +47,7 @@ int main(){
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // 새로 만든 셰이더 클래스를 이용해 셰이더를 텍스트 파일에서 불러오고 초기화한다.
-    Shader ourShader("../../src/1.getting_started/3.4.shaders_exercise1/upside_down.vs", "../../src/1.getting_started/3.3.shaders_class/shader.fs");
+    Shader ourShader("../../src/1.getting_started/3.6.shaders_exercise3/upside_down_uniform_color.vs", "../../src/1.getting_started/3.3.shaders_class/shader.fs");
     // ==================== 초기화 부분 끝 ===========================
 
     // 삼각형을 위한 버텍스 3개를 정의한다. 좌표값은 X, Y, Z로 정의된다.
@@ -107,8 +109,11 @@ int main(){
         glClearColor(0.2f, 0.3f, 0.3f, 0.6f);   // 1. 짙은 청녹색(RGBA값)으로 설정된 값으로,
         glClear(GL_COLOR_BUFFER_BIT);           // 컬러 버퍼를 지운다. 다른 버퍼도 가능.
 
-        ourShader.use();             // 2. 이제 위에서 만든 ourShader를 써서,
+        int vertexOffsetLocation = glGetUniformLocation(ourShader.ID, "offset"); 
 
+
+        ourShader.use();             // 2. 이제 위에서 만든 ourShader를 써서,
+        glUniform1f(vertexOffsetLocation, HORIZ_OFFSET);
         glBindVertexArray(VAO);                 // VAO에 담긴 데이터를 불러와,
         glDrawArrays(GL_TRIANGLES, 0, 3);       // 삼각형 타입을 vertex[0]에서부터 3개 정점을 그린다.
 
