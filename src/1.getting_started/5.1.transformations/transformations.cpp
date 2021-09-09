@@ -158,6 +158,10 @@ int main(){
 
     // 두번째 텍스처 로딩
     texture2 = load_texture("../../resources/textures/awesomeface.png", GL_RGBA, GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR);
+
+
+
+
     // Engine 준비
 
     // 우리가 만든 셰이더를 활성화하고,
@@ -183,22 +187,42 @@ int main(){
         glBindTexture(GL_TEXTURE_2D, texture2);
 
 
+        // 변환 행렬 준비
+        glm::mat4 trans = glm::mat4(1.0f); // 4x4 단위행렬 E
+        trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0)); // 여기에 x축 방향으로 0.5만큼 이동하고, y축 방향으로 -0.5만큼 이동한 행렬을 곱한다.
+
+        trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0, 0.0, 1.0)); // 여기에 Z축을 중심으로 조금씩 회전하는 행렬을 곱한다. 
+
+        // trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5)); // 여기에 모든 축으로 0.5배 한 행렬을 곱한다. 
+        // trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0)); // 여기에 Z축을 중심으로 90도 회전하는 행렬을 곱한다. 
+
+        glm::mat4 trans2 = glm::mat4(1.0f); // 4x4 단위행렬 E
+        trans2 = glm::translate(trans2, glm::vec3(-0.5f* sin((float)glfwGetTime()), 0.5f, 0)); 
+        
+        trans2 = glm::scale_slow(trans2, glm::vec3(fabs(sin((float)glfwGetTime())), fabs(sin((float)glfwGetTime())), 1));
+
+        /* 
+         * Remember that the actual transformation order should be read in reverse:
+         * even though in code we first translate and then later rotate, the actual
+         * transformations first apply a rotation and then a translation. 
+         * Understanding all these combinations of transformations and how they
+         * apply to objects is difficult to understand. Try and experiment with 
+         * transformations like these and you'll quickly get a grasp of it. 
+         */
+
+        unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
         // render container
         ourShader.use();
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-        // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO); // EBO에 담긴 데이터를 불러와,
-        // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);       // 삼각형 타입을 6개 정점을 그리는데, 0에서부터 그린다.
+        // reuse container with different transform value.
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans2));
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-        // 우리는 VAO에 담긴 데이터를 가지고 작업하기 때문에, 셰이더와 VAP 부분을 잘 수정했다면
-        // 여기는 건드릴 필요가 없다.
 
-        // 그리고 Learn OpenGL과 좌하단 / 우하단 vertex 순서가 반대이기 때문에 색도 반대로 나온다.
-        // 이는 정상이다.
-
-        // vertex에 대해서만 색을 지정해도, 기본적으로 그 사이의 pixel 색상의 경우 그 중간값을 interpolate한다.
-        // fragment shader의 모든 in 값에 적용된다.
 
         glfwSwapBuffers(window);    // 버퍼를 교체하고,
         glfwPollEvents();           // 이벤트를 폴링한다.
