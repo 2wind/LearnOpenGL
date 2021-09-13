@@ -272,8 +272,24 @@ int main(){
         glm::mat4 view = glm::mat4(1.0f);
         float radius = 10.0f;
         float camX = sin(glfwGetTime()) * radius;
+        float camY = sin(glfwGetTime() / 3) * radius;
         float camZ = cos(glfwGetTime()) * radius;
-        view = glm::lookAt(glm::vec3(camX, 0.0f, camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        view = glm::lookAt(glm::vec3(camX, camY, camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+        // view 수동 생성하기
+        // glm::vec3 cameraPos = glm::vec3(camX, 0.0f, camZ);  // desired position of camera
+        // glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f); // view target of camera (in this case, origin)
+        // glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget); // get normalized vector between two points
+
+        // glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f); // shorthand for y axis vector
+        // // 카메라를 향하는 벡터와, 위 방향 사이에 외적을 하면, 두 벡터와 수직인 벡터가 나온다(여기서는 +x축).
+        // glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
+        // // 그리고 카메라를 향하는 벡터와 오른쪽 벡터를 외적하면 "카메라 위 벡터가 나온다."
+        // glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
+
+        // view = glm::mat4(glm::vec4(cameraRight, 0), glm::vec4(cameraUp, 0), glm::vec4(cameraDirection, 0), glm::vec4(0, 0, 0, 1))
+        //         * glm::mat4(glm::vec4(1, 0, 0, -cameraPos.x), glm::vec4(0, 1, 0, -cameraPos.y), glm::vec4(0, 0, 1, -cameraPos.z), glm::vec4(0, 0, 0, 1));
+
         ourShader.setMat4("view", view);
 
         // Projection matrix
