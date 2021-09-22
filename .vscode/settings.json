@@ -4,7 +4,9 @@
         "array": "cpp",
         "string": "cpp",
         "string_view": "cpp",
-        "ranges": "cpp"
+        "ranges": "cpp",
+        "vector": "cpp",
+        "iostream": "cpp"
     },
     "cmake.configureOnOpen": false
 }
