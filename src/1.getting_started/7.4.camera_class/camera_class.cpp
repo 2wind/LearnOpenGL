@@ -271,7 +271,7 @@ int main(){
     // SET initial transforms
     for (int i = 0; i < NUM_BOXES; i++){
         Transform transform = Transform();
-        transform.pivot = glm::vec3(-0.5f, 0.0f, 0.0f);
+        transform.pivot = glm::vec3(-1.0f, 0.0f, 0.0f);
 
         transforms.push_back(transform);
 
@@ -332,10 +332,7 @@ int main(){
         // perform Transform in LOCAL SPACE
         // DO NOT COMBINE WITH OTHERS AT HERE.
 
-        // TODO: Change architecture according to https://gabormakesgames.com/transforms.html
-        //  Choose between 1. accumulate all and change architecture
-        // or 2. accumulate transform only and apply scale etc indiviually
-        // glm::quat root_rotation = transforms[0].rotation;
+        glm::quat root_rotation = transforms[0].rotation;
         if (lastFrame < 3.0f){
             for (int i = 1; i < NUM_BOXES; i++){
                 Transform current = transforms[i];
@@ -355,19 +352,60 @@ int main(){
             } 
         }
 
-        // else if (lastFrame < 6.0f)
-        // {
-        //     Transform current = transforms[0];
-        //     current.T = glm::translate(current.GetRawTranslation(), glm::vec3(0.0f, 2 * deltaTime, -2 * deltaTime));
+        else if (lastFrame < 6.0f)
+        {
+            Transform current = transforms[0];
+            current.position += glm::vec3(0.0f, 2 * deltaTime, -2 * deltaTime);
 
-        //     glm::quat rot = glm::slerp(glm::toQuat(root_rotation), 
-        //                     glm::quat(glm::vec3(0.0f, 0.0f, glm::pi<float>()/4)), // x axis 45 degree
-        //                     (lastFrame-3.0f) / 3);             
+            glm::quat rot = glm::slerp(glm::quat(glm::vec3(0.0f)), 
+                            glm::quat(glm::vec3(0.0f, 0.0f, glm::pi<float>()/2)), // x axis 45 degree
+                            (lastFrame-3.0f) / 3);             
                 
-        //     current.R = glm::toMat4(rot);
-        //     transforms[0] = current;
+            current.rotation = rot;
+            transforms[0] = current;
 
-        // }
+        }
+        else if (lastFrame < 9.0f){
+            Transform current = transforms[0];
+            current.pivot = glm::vec3(0.0f);
+
+            current.position -= glm::vec3(0.0f, deltaTime / 20, 0.0f);
+
+            glm::quat rot = glm::slerp(glm::quat(glm::vec3(0.0f, 0.0f, glm::pi<float>()/2)), 
+                            glm::quat(glm::vec3(0.0f, 0.0f, glm::pi<float>())), // x axis 45 degree
+                            (lastFrame-6.0f) / 3);             
+                
+            current.rotation = rot;
+            transforms[0] = current;
+        }
+        else if (lastFrame < 9.5f){
+            for (size_t i = 0; i < NUM_BOXES; i++)
+            {
+                Transform current = transforms[i];
+                current.pivot = current.position - get_world_position(current);
+                // glm::quat rot = glm::slerp(glm::quat(glm::vec3(0.0f, 0.0f, glm::pi<float>()/4)), 
+                //             glm::quat(glm::vec3(glm::pi<float>()/4, 0.0f, glm::pi<float>()/4)), // x axis 45 degree
+                //             (lastFrame-9.0f) / 3);    
+                // current.rotation = rot;
+
+                transforms[i] = current;
+            }
+            root_rotation = transforms[0].rotation;
+            
+        }
+        else if (lastFrame < 12.5f){
+            for (int i = 1; i < NUM_BOXES; i++){
+                Transform current = transforms[i];
+
+                glm::vec3 pos = current.position - glm::vec3(0.0f, deltaTime / 20, 0.0f);
+                
+                current.position = pos;
+
+
+                // copy back to original vector
+                transforms[i] = current;
+            } 
+        }
         
 
             
@@ -376,7 +414,6 @@ int main(){
 
 
         // COMBINING MATRICES WITH PARENT
-        // TODO: build parent-child model INSIDE transform class
         // (SO THAT COMPLEX MATRICES CAN BE BUILT)
         for (unsigned int i = 0; i < NUM_BOXES; i++)
         {
