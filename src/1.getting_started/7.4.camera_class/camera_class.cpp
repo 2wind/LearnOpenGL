@@ -28,8 +28,6 @@ void processInput(GLFWwindow * window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
-
-
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -272,17 +270,18 @@ int main(){
 
     // SET initial transforms
     for (int i = 0; i < NUM_BOXES; i++){
-        glm::mat4 T = glm::mat4(1.0f);
-        glm::mat4 R = glm::mat4(1.0f);
-        glm::mat4 Sh = glm::mat4(1.0f);
-        glm::mat4 S = glm::mat4(1.0f);
-        glm::vec3 pivot = glm::vec3(-0.5f, 0.0f, 0.0f);
+        Transform transform = Transform();
+        transform.pivot = glm::vec3(-0.5f, 0.0f, 0.0f);
 
-        Transform transform = Transform(T, R, Sh, S, pivot);
         transforms.push_back(transform);
 
     }
-    transforms[0].S = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 0.1f, 0.1f));
+    transforms[0].scale = glm::vec3(1.0f, 0.1f, 0.1f);
+
+    for (int i = 1; i < NUM_BOXES; i++){
+        transforms[i].SetParent(transforms[i-1]);
+    }
+    // transforms[0].scale = glm::vec3(1.0f, 0.1f, 0.1f);
     
     // 메인 루프
     // 창을 닫아야 할 필요가 없을 동안...
@@ -336,39 +335,39 @@ int main(){
         // TODO: Change architecture according to https://gabormakesgames.com/transforms.html
         //  Choose between 1. accumulate all and change architecture
         // or 2. accumulate transform only and apply scale etc indiviually
-        glm::mat4 root_rotation = transforms[0].R;
+        // glm::quat root_rotation = transforms[0].rotation;
         if (lastFrame < 3.0f){
             for (int i = 1; i < NUM_BOXES; i++){
                 Transform current = transforms[i];
 
-                glm::mat4 T = glm::translate(current.T, 
-                            glm::vec3(0.0f, deltaTime / 20, 0.0f));
-                current.T = T;
+                glm::vec3 pos = current.position + glm::vec3(0.0f, deltaTime / 20, 0.0f);
+                
+                current.position = pos;
 
                 // slerp between angle 0 and desginated ANGLE
                 glm::quat rot = glm::slerp(glm::quat(glm::vec3(0.0f)),
                                          glm::quat(glm::vec3(0.0f, angle, 0.0f)), lastFrame / 3);             
-                glm::mat4 R = glm::toMat4(rot);
-                current.R = R;
+                
+                current.rotation = rot;
 
                 // copy back to original vector
                 transforms[i] = current;
             } 
         }
 
-        else if (lastFrame < 6.0f)
-        {
-            Transform current = transforms[0];
-            current.T = glm::translate(current.GetRawTranslation(), glm::vec3(0.0f, 2 * deltaTime, -2 * deltaTime));
+        // else if (lastFrame < 6.0f)
+        // {
+        //     Transform current = transforms[0];
+        //     current.T = glm::translate(current.GetRawTranslation(), glm::vec3(0.0f, 2 * deltaTime, -2 * deltaTime));
 
-            glm::quat rot = glm::slerp(glm::toQuat(root_rotation), 
-                            glm::quat(glm::vec3(0.0f, 0.0f, glm::pi<float>()/4)), // x axis 45 degree
-                            (lastFrame-3.0f) / 3);             
+        //     glm::quat rot = glm::slerp(glm::toQuat(root_rotation), 
+        //                     glm::quat(glm::vec3(0.0f, 0.0f, glm::pi<float>()/4)), // x axis 45 degree
+        //                     (lastFrame-3.0f) / 3);             
                 
-            current.R = glm::toMat4(rot);
-            transforms[0] = current;
+        //     current.R = glm::toMat4(rot);
+        //     transforms[0] = current;
 
-        }
+        // }
         
 
             
@@ -382,12 +381,8 @@ int main(){
         for (unsigned int i = 0; i < NUM_BOXES; i++)
         {
             // calculate the model matrix for each object and pass it to shader before drawing
-            glm::mat4 model = transforms[i].GetMatrix();
-            glm::mat4 parent;
-            if (i > 0){
-                model = model * parent;
-            }
-            parent = model;
+            glm::mat4 model = get_world_matrix(transforms[i]);
+            
             ourShader.setMat4("model", model);
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
