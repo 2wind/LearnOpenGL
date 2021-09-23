@@ -11,6 +11,7 @@ class Transform{
     public:
 
         Transform * parent;
+        std::vector<Transform> children;
         glm::vec3 position;
         glm::quat rotation;
         glm::vec3 scale;
@@ -23,7 +24,7 @@ class Transform{
         Transform(){
             parent = NULL;
             position = glm::vec3(0.0f);
-            rotation = glm::quat(glm::vec3(0.0f));
+            rotation = glm::identity<glm::quat>();
             scale = glm::vec3(1.0f, 1.0f, 1.0f);
             pivot = glm::vec3(0.0f);
 
@@ -34,23 +35,26 @@ class Transform{
 
                 
         glm::mat4 GetMatrix(){
-            glm::mat4 S = GetShearMatrix() * glm::scale(glm::mat4(1.0f), scale);
-            glm::mat4 RS = glm::translate(glm::toMat4(rotation) * glm::translate(S, -pivot), pivot);
-            glm::mat4 TRS = glm::translate(RS, position);
+            glm::mat4 T = glm::translate(glm::mat4(1.0f), position);
+            glm::mat4 TR = glm::translate(glm::toMat4(rotation) * glm::translate(T, -pivot), pivot);
+            glm::mat4 TRS = glm::scale(TR, scale) * GetShearMatrix();
 
             return TRS;
 
         }
+
+
         glm::mat4 GetMatrixWithoutShear(){
-            glm::mat4 S =  glm::scale(glm::mat4(1.0f), scale);
-            glm::mat4 RS = glm::translate(glm::toMat4(rotation) * glm::translate(S, -pivot), pivot);
-            glm::mat4 TRS = glm::translate(RS, position);
+            glm::mat4 T = glm::translate(glm::mat4(1.0f), position);
+            glm::mat4 TR = glm::translate(glm::toMat4(rotation) * glm::translate(T, -pivot), pivot);
+            glm::mat4 TRS = glm::scale(TR, scale);
 
             return TRS;
         }
 
         void SetParent(Transform & t){
             parent = &t;
+            t.children.push_back(*this);
         }
 
         glm::mat4 GetRawTranslation(){
@@ -74,8 +78,7 @@ class Transform{
 };
 
 glm::mat4 get_world_matrix(Transform transform){
-    glm::mat4 local = transform.GetMatrix();
-    glm::mat4 world = local;
+    glm::mat4 world = transform.GetMatrix();
     Transform * iter = transform.parent;
 
     while (iter != NULL){
@@ -99,4 +102,8 @@ glm::vec3 get_world_position(Transform transform){
         iter = iter->parent;
     }
     return worldPosition;
+}
+
+void manipulate_anchored_to(Transform transform){
+
 }
