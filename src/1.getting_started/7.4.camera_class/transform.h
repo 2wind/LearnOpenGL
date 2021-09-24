@@ -40,11 +40,16 @@ class Transform{
 
 
         glm::mat4 GetMatrixWithoutShear(){
+            glm::mat4 TR = GetMatrixRaw();
+            glm::mat4 TRS = glm::translate(glm::scale(glm::translate(TR, pivot), scale), -pivot);
+            
+            return TRS;
+        }
+        glm::mat4 GetMatrixRaw(){
             glm::mat4 T = glm::translate(glm::mat4(1.0f), position);
             glm::mat4 TR = glm::translate(glm::translate(T, pivot) * glm::toMat4(rotation), -pivot);
-            glm::mat4 TRS = glm::scale(TR, scale);
 
-            return TRS;
+            return TR;
         }
 
         void SetParent(Transform & t){
@@ -64,7 +69,7 @@ class Transform{
             Transform * iter = parent;
             int count = 0;
             while (iter != NULL){
-                glm::mat4 parentM = iter->GetMatrixWithoutShear();
+                glm::mat4 parentM = iter->GetMatrixRaw();
                 world = parentM * world;
                 iter = iter->parent;
                 count++;
@@ -75,24 +80,24 @@ class Transform{
 
         glm::quat GetWorldRotation(){
             glm::quat worldRotation = rotation;
-            Transform * parent = parent;
+            Transform * iter = parent;
             
-            while (parent != NULL){
-                worldRotation = parent->rotation * worldRotation;
-                parent = parent->parent;
+            while (iter != NULL){
+                worldRotation = iter->rotation * worldRotation;
+                iter = iter->parent;
             }
             return worldRotation;
         }
 
         glm::vec3 GetWorldPosition(){
             glm::vec3 worldPosition = position;
-            Transform * parent = parent;
-            while (parent != NULL){
-                worldPosition = worldPosition * parent->scale;
-                worldPosition = worldPosition * parent->rotation;
-                worldPosition += parent->position;
+            Transform * iter = parent;
+            while (iter != NULL){
+                worldPosition = worldPosition * iter->scale;
+                worldPosition = worldPosition * iter->rotation;
+                worldPosition += iter->position;
 
-                parent = parent->parent;
+                iter = iter->parent;
             }
             return worldPosition;
         }
