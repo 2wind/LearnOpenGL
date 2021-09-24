@@ -279,16 +279,7 @@ int main(){
     for (int i = 1; i < NUM_BOXES; i++){
         transforms[i].SetParent(transforms[i-1]);
     }
-    for (size_t i = 0; i < NUM_BOXES; i++)
-    {
-        if (transforms[i].parent != NULL){
-            std::cout << glm::to_string(transforms[i].parent->position) << std::endl;
-            std::cout << glm::to_string(transforms[i].parent->GetWorldMatrix()) << std::endl;    
-        }
-        transforms[i].scale = glm::vec3(1.0f, 0.1f, 0.1f);    
 
-    }
-    
     
     
     // 메인 루프

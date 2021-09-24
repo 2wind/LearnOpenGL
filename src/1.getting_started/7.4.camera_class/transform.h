@@ -41,13 +41,13 @@ class Transform{
 
         glm::mat4 GetMatrixWithoutShear(){
             glm::mat4 TR = GetMatrixRaw();
-            glm::mat4 TRS = glm::translate(glm::scale(glm::translate(TR, pivot), scale), -pivot);
+            glm::mat4 TRS = ScalePivot(TR, scale);
             
             return TRS;
         }
         glm::mat4 GetMatrixRaw(){
             glm::mat4 T = glm::translate(glm::mat4(1.0f), position);
-            glm::mat4 TR = glm::translate(glm::translate(T, pivot) * glm::toMat4(rotation), -pivot);
+            glm::mat4 TR = RotatePivot(T, rotation);
 
             return TR;
         }
@@ -65,16 +65,26 @@ class Transform{
         }
 
         glm::mat4 GetWorldMatrix(){
-            glm::mat4 world = GetMatrix();
+            glm::mat4 world = GetMatrixRaw();
+            glm::vec3 worldScale = scale;
             Transform * iter = parent;
-            int count = 0;
+
             while (iter != NULL){
                 glm::mat4 parentM = iter->GetMatrixRaw();
+                glm::vec3 parentScale = iter->scale;
+
                 world = parentM * world;
+                worldScale.x = parentScale.x * worldScale.x;
+                worldScale.y = parentScale.y * worldScale.y;
+                worldScale.z = parentScale.z * worldScale.z;
+
                 iter = iter->parent;
-                count++;
+
             }
-            std::cout << count << std::endl;
+
+            world = ScalePivot(world, worldScale);
+            world = world * GetShearMatrix();
+            
             return world;
         }
 
@@ -113,6 +123,14 @@ class Transform{
         }
 
     private:
+        glm::mat4 RotatePivot(glm::mat4 T, glm::quat rotation){
+            return glm::translate(glm::translate(T, pivot) * glm::toMat4(rotation), -pivot);
+        }
+
+        glm::mat4 ScalePivot(glm::mat4 TR, glm::vec3 scale){
+            return glm::translate(glm::scale(glm::translate(TR, pivot), scale), -pivot);
+        }
+
         glm::mat4 GetShearMatrix(){
             glm::mat4 matrix = glm::mat4(1.0f);
             matrix[0][1] = shear_x[0];
