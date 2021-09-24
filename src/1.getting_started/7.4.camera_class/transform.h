@@ -59,6 +59,54 @@ class Transform{
             return glm::translate(GetRawTranslation(), -pivot);
         }
 
+        glm::mat4 GetWorldMatrix(){
+            glm::mat4 world = GetMatrix();
+            Transform * iter = parent;
+            int count = 0;
+            while (iter != NULL){
+                glm::mat4 parentM = iter->GetMatrixWithoutShear();
+                world = parentM * world;
+                iter = iter->parent;
+                count++;
+            }
+            std::cout << count << std::endl;
+            return world;
+        }
+
+        glm::quat GetWorldRotation(){
+            glm::quat worldRotation = rotation;
+            Transform * parent = parent;
+            
+            while (parent != NULL){
+                worldRotation = parent->rotation * worldRotation;
+                parent = parent->parent;
+            }
+            return worldRotation;
+        }
+
+        glm::vec3 GetWorldPosition(){
+            glm::vec3 worldPosition = position;
+            Transform * parent = parent;
+            while (parent != NULL){
+                worldPosition = worldPosition * parent->scale;
+                worldPosition = worldPosition * parent->rotation;
+                worldPosition += parent->position;
+
+                parent = parent->parent;
+            }
+            return worldPosition;
+        }
+
+        void SetWorldRotation(glm::quat rot){
+            if (parent == NULL){
+                rotation = rot;
+                return;
+            }
+            glm::quat parentWorld = parent->GetWorldRotation();
+            glm::quat inv = glm::inverse(parentWorld);
+            rotation = inv * rot;
+        }
+
     private:
         glm::mat4 GetShearMatrix(){
             glm::mat4 matrix = glm::mat4(1.0f);
@@ -71,30 +119,3 @@ class Transform{
             return matrix;
         }
 };
-
-glm::mat4 get_world_matrix(Transform transform){
-    glm::mat4 world = transform.GetMatrix();
-    Transform * iter = transform.parent;
-
-    while (iter != NULL){
-        glm::mat4 parent = iter->GetMatrixWithoutShear();
-        world = world * parent;
-        iter = iter->parent;
-    }
-
-
-    return world;
-}
-
-glm::vec3 get_world_position(Transform transform){
-    glm::vec3 worldPosition = transform.position;
-    Transform * iter = transform.parent;
-    while (iter != NULL){
-        worldPosition = worldPosition * iter->scale;
-        worldPosition = worldPosition * iter->rotation;
-        worldPosition += iter->position;
-
-        iter = iter->parent;
-    }
-    return worldPosition;
-}
