@@ -35,18 +35,13 @@ class Transform{
 
                 
         glm::mat4 GetMatrix(){
-            glm::mat4 T = glm::translate(glm::mat4(1.0f), position);
-            glm::mat4 TR = glm::translate(glm::toMat4(rotation) * glm::translate(T, -pivot), pivot);
-            glm::mat4 TRS = glm::scale(TR, scale) * GetShearMatrix();
-
-            return TRS;
-
+            return GetMatrixWithoutShear() * GetShearMatrix();
         }
 
 
         glm::mat4 GetMatrixWithoutShear(){
             glm::mat4 T = glm::translate(glm::mat4(1.0f), position);
-            glm::mat4 TR = glm::translate(glm::toMat4(rotation) * glm::translate(T, -pivot), pivot);
+            glm::mat4 TR = glm::translate(glm::translate(T, pivot) * glm::toMat4(rotation), -pivot);
             glm::mat4 TRS = glm::scale(TR, scale);
 
             return TRS;
@@ -102,8 +97,4 @@ glm::vec3 get_world_position(Transform transform){
         iter = iter->parent;
     }
     return worldPosition;
-}
-
-void manipulate_anchored_to(Transform transform){
-
 }
