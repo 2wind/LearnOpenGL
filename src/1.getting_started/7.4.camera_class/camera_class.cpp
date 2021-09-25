@@ -32,9 +32,10 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-glm::vec3 cameraPos   = glm::vec3(0.0f, 1.0f,  3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
+glm::vec3 cameraPos   = glm::vec3(0.0f, 1.5f,  sqrt(3.0));
+float down_angle = 30.0f;
+glm::vec3 cameraFront = glm::vec3(0.0f, -sin(glm::radians(down_angle)), -cos(glm::radians(down_angle)));
+glm::vec3 cameraUp    = glm::vec3(0.0f,  cos(glm::radians(down_angle)), -sin(glm::radians(down_angle)));
 
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
@@ -67,7 +68,7 @@ GLFWwindow* initialize(){
     glfwMakeContextCurrent(window); // 우리 윈도우의 컨텍스트를 현재 스레드의 주 컨텍스트로 지정하겠다고 알리기
 
     // 마우스 잠금
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // GLAD를 초기화해야 한다.
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -81,8 +82,8 @@ GLFWwindow* initialize(){
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // 커서 및 스크롤 콜백 함수 등록
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
+    // glfwSetCursorPosCallback(window, mouse_callback);
+    // glfwSetScrollCallback(window, scroll_callback);
 
     // depth buffer 활성화
     glEnable(GL_DEPTH_TEST);  
@@ -418,7 +419,7 @@ int main(){
 
         else if (lastFrame < 9.0f)
         {
-            transforms[0].position += glm::vec3(0.0f, deltaTime/12, 0.0f);
+            transforms[0].position -= glm::vec3(0.0f, deltaTime/24, 0.0f);
             transforms[1].rotation = glm::slerp(glm::quat(glm::vec3(0.0f)),
                                          glm::quat(glm::vec3(0.0f, 0.0f, -(glm::half_pi<float>() + angle))), (lastFrame-3 )/ 6);        
             int i = ((static_cast<int>((lastFrame - 3) * 2)));
@@ -442,7 +443,7 @@ int main(){
 
         }
         else if (lastFrame < 21.0f){
-            transforms[0].pivot = glm::vec3(0.0f, 0.5f, 0.0f);
+            transforms[0].pivot = -transforms[0].position;
             transforms[0].rotation = glm::slerp(glm::quat(glm::vec3(0.0f)),
                                          glm::quat(glm::vec3(0.0f, 0.0f, -glm::half_pi<float>())), (lastFrame-9 )/ 3);
         }
