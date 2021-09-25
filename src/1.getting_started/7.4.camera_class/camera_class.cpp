@@ -413,41 +413,44 @@ int main(){
             } 
         }
 
-        else if (lastFrame < 6.0f)
+        else if (lastFrame < 9.0f)
         {
             transforms[0].position += glm::vec3(0.0f, deltaTime/12, 0.0f);
-            for (int i = 0; i < NUM_BOXES; i++){
+            int i = ((static_cast<int>((lastFrame - 3) * 2)));
+            if (i > 0 and i < 12){
                 Transform current = transforms[i];
 
 
                 // slerp between angle 0 and desginated ANGLE
                 glm::quat rot = glm::slerp(glm::quat(glm::vec3(0.0f)),
-                                         glm::quat(glm::vec3(0.0f, 0.0f, -angle)), (lastFrame-3.0f) / 3);             
+                                         glm::quat(glm::vec3(0.0f, 0.0f, -angle)), ((lastFrame-3.0f)*2 - i));             
                 
                 current.rotation = rot;
 
                 // if (i > 0) current.pivot = glm::vec3(0.0f, -0.5f, 0.0f);
 
                 transforms[i] = current;
-            } 
+            }
+
+
 
         }
-        else if (lastFrame < 18.0f){
-            for (int i = 0; i < NUM_BOXES; i++){
-                Transform current = transforms[i];
-                // current.pivot = glm::vec3(0.5f, 0.5f, 0.0f);
+        // else if (lastFrame < 15.0f){
+        //     for (int i = 0; i < NUM_BOXES; i++){
+        //         Transform current = transforms[i];
+        //         // current.pivot = glm::vec3(0.5f, 0.5f, 0.0f);
 
-                // slerp between angle 0 and desginated ANGLE
-                glm::quat rot = glm::slerp(glm::quat(glm::vec3(0.0f, 0.0f, -angle)),
-                                         glm::quat(glm::vec3(0.0f, 0.0f, glm::two_pi<float>()- 2* angle)), (lastFrame-6.0f) / 12);             
+        //         // slerp between angle 0 and desginated ANGLE
+        //         glm::quat rot = glm::slerp(glm::quat(glm::vec3(0.0f, 0.0f, -angle)),
+        //                                  glm::quat(glm::vec3(0.0f, 0.0f, glm::two_pi<float>()- 2* angle)), (lastFrame-6.0f) / 6);             
                 
-                current.rotation = rot;
+        //         current.rotation = rot;
 
-                // if (i > 0) current.pivot = glm::vec3(0.0f, -0.5f, 0.0f);
+        //         // if (i > 0) current.pivot = glm::vec3(0.0f, -0.5f, 0.0f);
 
-                transforms[i] = current;
-            } 
-        }
+        //         transforms[i] = current;
+        //     } 
+        // }
         // else if (lastFrame < 9.5f){
         //     for (size_t i = 0; i < NUM_BOXES; i++)
         //     {
