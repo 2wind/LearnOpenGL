@@ -133,6 +133,7 @@ int main(){
 
     // 새로 만든 셰이더 클래스를 이용해 셰이더를 텍스트 파일에서 불러오고 초기화한다.
     Shader ourShader("7.1.camera.vs", "7.1.camera.fs");
+    Shader simpleShader("shader.vs", "shader.fs");
     // ==================== 초기화 부분 끝 ===========================
 
 
@@ -198,6 +199,60 @@ int main(){
         glm::vec3(-1.3f,  1.0f, -1.5f)
     };
 
+    const int NUM_VERTICES_CIRCLE = 16;
+    float radius = 0.5f;
+    float height = 1.0f;
+    std::vector<float> cylinder;
+    for (size_t i = 0; i < NUM_VERTICES_CIRCLE; i++)
+    {
+        float theta = i * glm::two_pi<float>() / NUM_VERTICES_CIRCLE;
+
+        // upper circle
+        cylinder.push_back(radius * cos(theta)); // x
+        cylinder.push_back(radius * sin(theta)); // y
+        cylinder.push_back(height / 2);          // z
+
+        // lower circle
+        cylinder.push_back(radius * cos(theta)); // x
+        cylinder.push_back(radius * sin(theta)); // y
+        cylinder.push_back(-height / 2);         // z
+    }
+
+    std::vector<unsigned int> cylinder_indices;
+    // indices for side
+    for (size_t i = 0; i < NUM_VERTICES_CIRCLE * 2; i++)
+    {
+        int first  =  i;
+        int second = (i + 1) % (NUM_VERTICES_CIRCLE * 2);
+        int third  = (i + 2) % (NUM_VERTICES_CIRCLE * 2);
+
+        cylinder_indices.push_back(first);
+        cylinder_indices.push_back(second);
+        cylinder_indices.push_back(third);
+    }
+    for (size_t i = 1; i < NUM_VERTICES_CIRCLE - 1; i++){
+        int first = 0;
+        int second = i * 2;
+        int third = (i + 1) * 2;
+
+        cylinder_indices.push_back(first);
+        cylinder_indices.push_back(second);
+        cylinder_indices.push_back(third);
+    }
+    for (size_t i = 1; i < NUM_VERTICES_CIRCLE - 1; i++){
+        int first = 1;
+        int second = (i * 2) + 1;
+        int third = (i + 1) * 2 + 1;
+
+        cylinder_indices.push_back(first);
+        cylinder_indices.push_back(second);
+        cylinder_indices.push_back(third);
+    }
+    
+    // cylinder.data()로 데이터를 부를 수 있다. 여기에 텍스쳐는 없으므로 그냥 단색으로 나오게 만들던가 하자.
+    // [x0, y0, z0, x1, y1, z1, ... ] (3 * NUM_VERTICES_CIRCLE 길이, stride 3 * sizeof(float))
+    
+
 
     /* 좌표 변환의 해석
      * 여기에 있는 좌표는 local space라고 할 수 있다.
@@ -242,6 +297,28 @@ int main(){
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) (3*sizeof(float)));
     glEnableVertexAttribArray(1);
 
+    // 원기둥 부분
+
+    unsigned int cylinderVBO, cylinderVAO;
+    unsigned int cylinderEBO;
+
+
+    // 버퍼 id를 생성한다. 
+    glGenVertexArrays(1, &cylinderVAO);
+    glGenBuffers(1, &cylinderVBO);
+    glGenBuffers(1, &cylinderEBO);
+
+    glBindVertexArray(cylinderVAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, cylinderVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * cylinder.size(), cylinder.data(), GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cylinderEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(float) * cylinder_indices.size(), cylinder_indices.data(), GL_STATIC_DRAW);
+    
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*) 0);
+    glEnableVertexAttribArray(0);
+
     // ==================== VAO, VBO 끝 ==============================
     // ============= 텍스처 해석 ===============
 
@@ -262,6 +339,11 @@ int main(){
     ourShader.setInt("texture1", 0); // shader class 이용.
     ourShader.setInt("texture2", 1); // shader class 이용.
 
+
+    simpleShader.use();
+    simpleShader.setVec3("baseColor", glm::vec3(0.5f, 0.6f, 0.2f));
+
+
     std::vector<Transform> transforms;
 
 
@@ -275,7 +357,7 @@ int main(){
 
     }
     transforms[0].scale = glm::vec3(1.0f, 0.1f, 0.1f);
-
+    transforms[6].scale = glm::vec3(0.2f, 2.0f, 1.0f);
     for (int i = 1; i < NUM_BOXES; i++){
         transforms[i].SetParent(transforms[i-1]);
     }
@@ -304,29 +386,7 @@ int main(){
 
         // 변환 행렬 준비
 
-        ourShader.use();
 
-        // view matrix
-
-        glm::mat4 view = glm::mat4(1.0f);
-        view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-        ourShader.setMat4("view", view);
-
-        // Projection matrix
-        glm::mat4 proj = glm::mat4(1.0f);
-        // Orthographic Projection
-        // glm::ortho(0.0f, SCR_WIDTH, 0.0f, SCR_HEIGHT,0.1f, 100.0f);
-        // Perspective Projection
-        // FoV, Aspect ratio, near clip, far clip.
-        proj = glm::perspective(glm::radians(fov), (float)SCR_WIDTH/(float)SCR_HEIGHT, 0.1f, 100.0f);
-
-        // unsigned int modelLoc = glGetUniformLocation(ourShader.ID, "model");
-        // glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        ourShader.setMat4("projection", proj); // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
-        
-
-        // render boxes
-        glBindVertexArray(VAO);
         
         // perform Transform in LOCAL SPACE
         // DO NOT COMBINE WITH OTHERS AT HERE.
@@ -410,13 +470,37 @@ int main(){
         
 
             
+
+        ourShader.use();
+
+        // view matrix
+
+        glm::mat4 view = glm::mat4(1.0f);
+        view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+        ourShader.setMat4("view", view);
+
+        // Projection matrix
+        glm::mat4 proj = glm::mat4(1.0f);
+        // Orthographic Projection
+        // glm::ortho(0.0f, SCR_WIDTH, 0.0f, SCR_HEIGHT,0.1f, 100.0f);
+        // Perspective Projection
+        // FoV, Aspect ratio, near clip, far clip.
+        proj = glm::perspective(glm::radians(fov), (float)SCR_WIDTH/(float)SCR_HEIGHT, 0.1f, 100.0f);
+
+        // unsigned int modelLoc = glGetUniformLocation(ourShader.ID, "model");
+        // glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        ourShader.setMat4("projection", proj); // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
+        
+
+
         //std::cout << glm::to_string(transforms[2].R) << std::endl;
 
-
+        // render boxes
+        glBindVertexArray(VAO);
 
         // COMBINING MATRICES WITH PARENT
         // (SO THAT COMPLEX MATRICES CAN BE BUILT)
-        for (unsigned int i = 0; i < NUM_BOXES; i++)
+        for (unsigned int i = 0; i < NUM_BOXES - 6; i++)
         {
             // calculate the model matrix for each object and pass it to shader before drawing
             glm::mat4 model = transforms[i].GetWorldMatrix();
@@ -424,6 +508,27 @@ int main(){
             ourShader.setMat4("model", model);
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+
+
+
+
+        // render cylinder
+        simpleShader.use();
+        glBindVertexArray(cylinderVAO); // Changing VAO on the fly is expensive: consider using single VAO.
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cylinderEBO);
+
+        simpleShader.setMat4("view", view);
+        simpleShader.setMat4("projection", proj);
+        // COMBINING MATRICES WITH PARENT
+        // (SO THAT COMPLEX MATRICES CAN BE BUILT)
+        for (unsigned int i = 6; i < NUM_BOXES; i++)
+        {
+            // calculate the model matrix for each object and pass it to shader before drawing
+            glm::mat4 model = transforms[i].GetWorldMatrix(); // Calculating model matrix in top-down manner will save calculation.
+            
+            simpleShader.setMat4("model", model);
+            glDrawElements(GL_TRIANGLES, cylinder_indices.size(), GL_UNSIGNED_INT, 0);
         }
 
 
