@@ -356,8 +356,8 @@ int main(){
         transforms.push_back(transform);
 
     }
-    transforms[0].scale = glm::vec3(1.0f, 0.1f, 0.1f);
-    transforms[6].scale = glm::vec3(0.2f, 2.0f, 1.0f);
+    transforms[0].scale = glm::vec3(0.1f, 0.1f, 0.1f);
+    // transforms[6].scale = glm::vec3(0.2f, 2.0f, 1.0f);
     for (int i = 1; i < NUM_BOXES; i++){
         transforms[i].SetParent(transforms[i-1]);
     }
@@ -398,15 +398,15 @@ int main(){
             for (int i = 1; i < NUM_BOXES; i++){
                 Transform current = transforms[i];
 
-                glm::vec3 pos = current.position + glm::vec3(0.0f, deltaTime / 10, 0.0f);
+                glm::vec3 pos = current.position + glm::vec3(0.0f, deltaTime / 12, 0.0f);
                 
                 current.position = pos;
 
-                // slerp between angle 0 and desginated ANGLE
-                glm::quat rot = glm::slerp(glm::quat(glm::vec3(0.0f)),
-                                         glm::quat(glm::vec3(0.0f, angle, 0.0f)), lastFrame / 3);             
+                // // slerp between angle 0 and desginated ANGLE
+                // glm::quat rot = glm::slerp(glm::quat(glm::vec3(0.0f)),
+                //                          glm::quat(glm::vec3(0.0f, angle, 0.0f)), lastFrame / 3);             
                 
-                current.rotation = rot;
+                // current.rotation = rot;
 
                 // copy back to original vector
                 transforms[i] = current;
@@ -415,58 +415,67 @@ int main(){
 
         else if (lastFrame < 6.0f)
         {
-            Transform current = transforms[0];
-            current.position += glm::vec3(0.0f, deltaTime / 20, deltaTime / -20);
-
-            glm::quat rot = glm::slerp(glm::quat(glm::vec3(0.0f)), 
-                            glm::quat(glm::vec3(0.0f, 0.0f, glm::pi<float>()/2)), // x axis 45 degree
-                            (lastFrame-3.0f) / 3);             
-                
-            current.rotation = rot;
-            transforms[0] = current;
-
-        }
-        else if (lastFrame < 9.0f){
-            Transform current = transforms[0];
-            current.pivot = glm::vec3(0.0f);
-
-            current.position -= glm::vec3(0.0f, deltaTime / 20, 0.0f);
-
-            glm::quat rot = glm::slerp(glm::quat(glm::vec3(0.0f, 0.0f, glm::pi<float>()/2)), 
-                            glm::quat(glm::vec3(0.0f, 0.0f, glm::pi<float>())), // x axis 45 degree
-                            (lastFrame-6.0f) / 3);             
-                
-            current.rotation = rot;
-            transforms[0] = current;
-        }
-        else if (lastFrame < 9.5f){
-            for (size_t i = 0; i < NUM_BOXES; i++)
-            {
+            transforms[0].position += glm::vec3(0.0f, deltaTime/12, 0.0f);
+            for (int i = 0; i < NUM_BOXES; i++){
                 Transform current = transforms[i];
-                current.pivot = current.position - current.GetWorldPosition();
-                // glm::quat rot = glm::slerp(glm::quat(glm::vec3(0.0f, 0.0f, glm::pi<float>()/4)), 
-                //             glm::quat(glm::vec3(glm::pi<float>()/4, 0.0f, glm::pi<float>()/4)), // x axis 45 degree
-                //             (lastFrame-9.0f) / 3);    
-                // current.rotation = rot;
+
+
+                // slerp between angle 0 and desginated ANGLE
+                glm::quat rot = glm::slerp(glm::quat(glm::vec3(0.0f)),
+                                         glm::quat(glm::vec3(0.0f, 0.0f, -angle)), (lastFrame-3.0f) / 3);             
+                
+                current.rotation = rot;
+
+                // if (i > 0) current.pivot = glm::vec3(0.0f, -0.5f, 0.0f);
 
                 transforms[i] = current;
-            }
-            root_rotation = transforms[0].rotation;
-            
+            } 
+
         }
-        else if (lastFrame < 12.5f){
-            for (int i = 1; i < NUM_BOXES; i++){
+        else if (lastFrame < 18.0f){
+            for (int i = 0; i < NUM_BOXES; i++){
                 Transform current = transforms[i];
+                // current.pivot = glm::vec3(0.5f, 0.5f, 0.0f);
 
-                glm::vec3 pos = current.position - glm::vec3(0.0f, deltaTime / 20, 0.0f);
+                // slerp between angle 0 and desginated ANGLE
+                glm::quat rot = glm::slerp(glm::quat(glm::vec3(0.0f, 0.0f, -angle)),
+                                         glm::quat(glm::vec3(0.0f, 0.0f, glm::two_pi<float>()- 2* angle)), (lastFrame-6.0f) / 12);             
                 
-                current.position = pos;
+                current.rotation = rot;
 
+                // if (i > 0) current.pivot = glm::vec3(0.0f, -0.5f, 0.0f);
 
-                // copy back to original vector
                 transforms[i] = current;
             } 
         }
+        // else if (lastFrame < 9.5f){
+        //     for (size_t i = 0; i < NUM_BOXES; i++)
+        //     {
+        //         Transform current = transforms[i];
+        //         current.pivot = current.position - current.GetWorldPosition();
+        //         // glm::quat rot = glm::slerp(glm::quat(glm::vec3(0.0f, 0.0f, glm::pi<float>()/4)), 
+        //         //             glm::quat(glm::vec3(glm::pi<float>()/4, 0.0f, glm::pi<float>()/4)), // x axis 45 degree
+        //         //             (lastFrame-9.0f) / 3);    
+        //         // current.rotation = rot;
+
+        //         transforms[i] = current;
+        //     }
+        //     root_rotation = transforms[0].rotation;
+            
+        // }
+        // else if (lastFrame < 12.5f){
+        //     for (int i = 1; i < NUM_BOXES; i++){
+        //         Transform current = transforms[i];
+
+        //         glm::vec3 pos = current.position - glm::vec3(0.0f, deltaTime / 20, 0.0f);
+                
+        //         current.position = pos;
+
+
+        //         // copy back to original vector
+        //         transforms[i] = current;
+        //     } 
+        // }
         
 
             
