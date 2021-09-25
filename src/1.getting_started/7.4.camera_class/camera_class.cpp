@@ -351,14 +351,14 @@ int main(){
     const float angle = glm::two_pi<float>() / NUM_BOXES;
 
     // SET initial transforms
-    for (int i = 0; i < NUM_BOXES; i++){
+    for (int i = 0; i < NUM_BOXES + 1; i++){
         Transform transform = Transform();
         transforms.push_back(transform);
 
     }
     transforms[0].scale = glm::vec3(0.1f, 0.1f, 0.1f);
     // transforms[6].scale = glm::vec3(0.2f, 2.0f, 1.0f);
-    for (int i = 1; i < NUM_BOXES; i++){
+    for (int i = 1; i < NUM_BOXES + 1; i++){
         transforms[i].SetParent(transforms[i-1]);
     }
 
@@ -395,10 +395,13 @@ int main(){
 
 
         if (lastFrame < 3.0f){
-            for (int i = 1; i < NUM_BOXES; i++){
+            for (int i = 1; i < NUM_BOXES + 1; i++){
                 Transform current = transforms[i];
 
                 glm::vec3 pos = current.position + glm::vec3(0.0f, deltaTime / 12, 0.0f);
+                if (i == 1){
+                    pos += glm::vec3(0.0f, deltaTime / 6, 0.0f);
+                }
                 
                 current.position = pos;
 
@@ -416,10 +419,13 @@ int main(){
         else if (lastFrame < 9.0f)
         {
             transforms[0].position += glm::vec3(0.0f, deltaTime/12, 0.0f);
+            transforms[1].rotation = glm::slerp(glm::quat(glm::vec3(0.0f)),
+                                         glm::quat(glm::vec3(0.0f, 0.0f, -(glm::half_pi<float>() + angle))), (lastFrame-3 )/ 6);        
             int i = ((static_cast<int>((lastFrame - 3) * 2)));
-            if (i > 0 and i < 12){
+            if (i > 1 and i < 13){
                 Transform current = transforms[i];
 
+                current.position -= glm::vec3(0.0f, deltaTime / 12, 0.0f);
 
                 // slerp between angle 0 and desginated ANGLE
                 glm::quat rot = glm::slerp(glm::quat(glm::vec3(0.0f)),
@@ -435,6 +441,16 @@ int main(){
 
 
         }
+        else if (lastFrame < 21.0f){
+            transforms[0].pivot = glm::vec3(0.0f, 0.5f, 0.0f);
+            transforms[0].rotation = glm::slerp(glm::quat(glm::vec3(0.0f)),
+                                         glm::quat(glm::vec3(0.0f, 0.0f, -glm::half_pi<float>())), (lastFrame-9 )/ 3);
+        }
+        // else if (lastFrame < 21.0f){
+        //     transforms[0].pivot = glm::vec3(0.0f, 0.5f, 0.0f);
+        //     transforms[0].rotation = glm::slerp(glm::quat(glm::vec3(0.0f, 0.0f, -glm::half_pi<float>())),
+        //                                  glm::quat(glm::vec3(0.0f, 0.0f, 0.0f)), (lastFrame-15 )/ 3);
+        // }
         // else if (lastFrame < 15.0f){
         //     for (int i = 0; i < NUM_BOXES; i++){
         //         Transform current = transforms[i];
@@ -512,7 +528,7 @@ int main(){
 
         // COMBINING MATRICES WITH PARENT
         // (SO THAT COMPLEX MATRICES CAN BE BUILT)
-        for (unsigned int i = 0; i < NUM_BOXES - 6; i++)
+        for (unsigned int i = 1; i < NUM_BOXES - 5; i++)
         {
             // calculate the model matrix for each object and pass it to shader before drawing
             glm::mat4 model = transforms[i].GetWorldMatrix();
@@ -534,7 +550,7 @@ int main(){
         simpleShader.setMat4("projection", proj);
         // COMBINING MATRICES WITH PARENT
         // (SO THAT COMPLEX MATRICES CAN BE BUILT)
-        for (unsigned int i = 6; i < NUM_BOXES; i++)
+        for (unsigned int i = 7; i < NUM_BOXES+1; i++)
         {
             // calculate the model matrix for each object and pass it to shader before drawing
             glm::mat4 model = transforms[i].GetWorldMatrix(); // Calculating model matrix in top-down manner will save calculation.
