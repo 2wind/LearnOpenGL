@@ -94,8 +94,8 @@ int main(){
     GLFWwindow * window = initialize();
 
     // 새로 만든 셰이더 클래스를 이용해 셰이더를 텍스트 파일에서 불러오고 초기화한다.
-    Shader lightingShader("1.colors.vs", "1.colors.fs");
-    Shader lightCubeShader("1.light_cube.vs", "1.light_cube.fs");
+    Shader lightingShader("2.1.basic_lighting.vs", "2.1.basic_lighting.fs");
+    Shader lightCubeShader("2.1.light_cube.vs", "2.1.light_cube.fs");
     // ==================== 초기화 부분 끝 ===========================
 
 
@@ -291,12 +291,12 @@ int main(){
 
         model2 = glm::translate(model, lightPos);  
 
-        unsigned int modelLoc = glGetUniformLocation(lightCubeShader.ID, "model");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        unsigned int viewLoc = glGetUniformLocation(lightCubeShader.ID, "view");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        unsigned int projLoc = glGetUniformLocation(lightCubeShader.ID, "projection");
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
+        unsigned int modelLoc2 = glGetUniformLocation(lightCubeShader.ID, "model");
+        glUniformMatrix4fv(modelLoc2, 1, GL_FALSE, glm::value_ptr(model));
+        unsigned int viewLoc2 = glGetUniformLocation(lightCubeShader.ID, "view");
+        glUniformMatrix4fv(viewLoc2, 1, GL_FALSE, glm::value_ptr(view));
+        unsigned int projLoc2 = glGetUniformLocation(lightCubeShader.ID, "projection");
+        glUniformMatrix4fv(projLoc2, 1, GL_FALSE, glm::value_ptr(proj));
         // render container
         lightCubeShader.use();
         glBindVertexArray(lightVAO);
